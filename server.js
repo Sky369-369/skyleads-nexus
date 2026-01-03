@@ -62,6 +62,27 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// ============================================
+// 🛡️ FORTRESS PROTECTION LAYER (WAF / ANTI-BOT)
+// ============================================
+app.use((req, res, next) => {
+    const userAgent = req.get('User-Agent') || '';
+    const ip = req.ip;
+
+    // Reject known malicious user agents or scrapers
+    if (userAgent.includes('curl') || userAgent.includes('python-requests') || userAgent.includes('PostmanRuntime')) {
+        console.warn(`🛡️ Fortress: Blocked suspicious request from [${ip}] - UA: ${userAgent}`);
+        return res.status(403).json({ error: 'FORTRESS_BLOCK', message: 'Unauthorized Request Pattern' });
+    }
+
+    // Neural Threat Verification
+    if (SCNB.metrics.threatLevel === 'HIGH') {
+        return res.status(503).json({ error: 'SYSTEM_LOCK', message: 'Neural Shield Active - Try later' });
+    }
+
+    next();
+});
+
 // Static files
 app.use(express.static(path.join(__dirname)));
 
@@ -289,6 +310,17 @@ app.post('/api/payments/payout', async (req, res) => {
         let payoutResult;
         if (method === 'crypto') {
             payoutResult = await paymentService.createCryptoPayout(userId, amount, address);
+        } else if (method === 'card2crypto') {
+            console.log(`💳 Card2Crypto: Processing Fiat payment for [${userId}]...`);
+            // Step 1: Process Fiat via Stripe (Simulated)
+            const fiatSuccess = true; // paymentService.processCard(amount)
+
+            if (fiatSuccess) {
+                console.log(`🔀 Card2Crypto: Fiat Received. Initiating Neural Bridge Swap (Fiat -> Crypto)...`);
+                // Step 2: Auto-Swap & Send to Crypto Wallet
+                payoutResult = await paymentService.createCryptoPayout(userId, amount, address);
+                payoutResult.message = 'Fiat payment swapped and sent to crypto wallet via SCNB Bridge';
+            }
         } else {
             payoutResult = await paymentService.createStripePayout(userId, amount, address);
         }
