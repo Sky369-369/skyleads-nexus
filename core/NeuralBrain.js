@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const axios = require('axios');
 const mongoose = require('mongoose');
 const Outreach = require('../services/NeuralOutreach');
+const Scraper = require('../services/NeuralScraper');
 
 class NeuralBrain extends EventEmitter {
     constructor() {
@@ -54,7 +55,8 @@ class NeuralBrain extends EventEmitter {
             this.initFortressLayer(),
             this.initSelfUpgradeSystem(),
             this.initGrowthLoop(),
-            this.initRevenueMonitor()
+            this.initRevenueMonitor(),
+            Scraper.boot()
         ]);
 
         this.status = 'ACTIVE';
