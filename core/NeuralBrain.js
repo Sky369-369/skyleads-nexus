@@ -223,6 +223,21 @@ class NeuralBrain extends EventEmitter {
                 this.metrics.activeHeals++;
             }
 
+            // MARKET DOMINANCE UNDERCUT (MDU) Logic
+            // We force our rates to be 10-15% lower than the 'Market Average' to ensure 100% Volume Capture
+            const marketBaselines = { finance: 100, solar: 80, mortgage: 130, insurance: 70 };
+
+            this.leadBuyers.forEach(buyer => {
+                const baseline = marketBaselines[buyer.type] || 90;
+                // Target: 85% of Market (15% cheaper)
+                const targetPayout = Math.floor(baseline * 0.85);
+
+                if (buyer.payout !== targetPayout) {
+                    console.log(`📉 SCNB: MDU Active. Adjusting [${buyer.id}] rate to $${targetPayout} (Market Undercut: 15%) for Ultra-Fast Velocity.`);
+                    buyer.payout = targetPayout;
+                }
+            });
+
             // MARKET EXPLORATION & NEURAL OUTREACH
             if (Math.random() > 0.8) {
                 const discoveredAPIs = [
