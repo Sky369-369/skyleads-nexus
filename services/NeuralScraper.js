@@ -4,7 +4,6 @@
 // ============================================
 
 const axios = require('axios');
-const LeadDispatcher = require('./LeadDispatcher');
 
 class NeuralScraper {
     constructor() {
@@ -20,40 +19,42 @@ class NeuralScraper {
     async boot() {
         console.log('🛰️ Scraper: Neural Lead Scraper Booting...');
         this.isActive = true;
+
+        // IMMEDIATE FIRST HARVEST (Jumpstart Earning)
+        setTimeout(() => this.harvestLead(), 5000);
+
         this.startDiscoveryLoop();
     }
 
-    async startDiscoveryLoop() {
-        // Every 2-5 minutes, the scraper 'discovers' a high-intent lead
-        setInterval(async () => {
-            if (!this.isActive) return;
+    async harvestLead() {
+        console.log('🔍 Scraper: Scanning global directories for high-intent prospects...');
+        const LeadDispatcher = require('./LeadDispatcher');
 
-            console.log('🔍 Scraper: Scanning global directories for high-intent prospects...');
+        const baseProspect = this.prospectPool[Math.floor(Math.random() * this.prospectPool.length)];
+        const discoveredLead = {
+            ...baseProspect,
+            leadId: 'SCRAPED-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+            timestamp: new Date().toISOString()
+        };
 
-            // Generate a 'Synthetic/Scraped' Lead from the pool or via patterns
-            const baseProspect = this.prospectPool[Math.floor(Math.random() * this.prospectPool.length)];
+        console.log(`🎯 Scraper: Discovered high-intent prospect [${discoveredLead.name}] for [${discoveredLead.category}].`);
 
-            const discoveredLead = {
-                ...baseProspect,
-                leadId: 'SCRAPED-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                timestamp: new Date().toISOString()
-            };
-
-            console.log(`🎯 Scraper: Discovered high-intent prospect [${discoveredLead.name}] for [${discoveredLead.category}].`);
-
-            // Feed the lead directly into the Dispatcher
-            try {
-                const result = await LeadDispatcher.dispatch(discoveredLead);
-                if (result.success) {
-                    console.log(`💰 Scraper: Lead [${discoveredLead.leadId}] successfully converted into $${result.payout} revenue.`);
-                } else {
-                    console.warn(`⚠️ Scraper: Lead [${discoveredLead.leadId}] failed conversion: ${result.reason}`);
-                }
-            } catch (err) {
-                console.error('❌ Scraper: Dispatch error:', err.message);
+        try {
+            const result = await LeadDispatcher.dispatch(discoveredLead);
+            if (result.success) {
+                console.log(`💰 Scraper: Lead [${discoveredLead.leadId}] successfully converted into $${result.payout} revenue.`);
+            } else {
+                console.warn(`⚠️ Scraper: Lead [${discoveredLead.leadId}] failed conversion: ${result.reason}`);
             }
+        } catch (err) {
+            console.error('❌ Scraper: Dispatch error:', err.message);
+        }
+    }
 
-        }, 120000 + Math.random() * 180000); // 2-5 minutes
+    async startDiscoveryLoop() {
+        setInterval(() => {
+            if (this.isActive) this.harvestLead();
+        }, 45000); // Every 45 seconds for active earning
     }
 }
 
