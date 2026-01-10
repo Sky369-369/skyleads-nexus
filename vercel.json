@@ -17,20 +17,28 @@
         {
             "src": "*.css",
             "use": "@vercel/static"
+        },
+        {
+            "src": "*.png",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "server.js"
+            "dest": "/server.js"
         },
         {
             "src": "/admin-console",
-            "dest": "server.js"
+            "dest": "/server.js"
+        },
+        {
+            "src": "/(styles\\.css|main\\.js|chatbot\\.js|marketing\.js|script\\.js|ppl_hero_background\\.png|neural_brain_visualization\\.png)",
+            "continue": true
         },
         {
             "src": "/(.*)",
-            "dest": "index.html"
+            "dest": "/index.html"
         }
     ]
 }
